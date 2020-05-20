@@ -1,0 +1,21 @@
+#ifndef _SK_CLASS_H_
+#define _SK_CLASS_H_
+/**************************************************
+* File: skClass.h.
+* Desc: Definition of the SkClass class.
+* Module: AkraLog : Compiler.
+* Rev: 2001/04/26 : REV 0 : Hugo DesRosiers : Creation.
+* $Log$
+**************************************************/
+
+
+class SkClass {
+  protected:
+
+  public:
+    SkClass();
+    virtual ~SkClass();
+};
+
+#endif          /* _SK_CLASS_H_ */
+

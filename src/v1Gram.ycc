@@ -1,0 +1,1659 @@
+/******************************************************************************
+* Fichier: jvgram.y
+* Desc: grammaire en yacc pour compiler le langage Java.
+* Module: AkraLog : JavaKit.
+* Revision: 20 avril 1996 : REV 0 : Hugo DesRosiers : Creation.
+******************************************************************************/
+
+%{
+/* On met ici les declaration et les fichiers inclus */
+#include "customFlex.h"
+
+extern int srplex();
+extern void srperror(char *);
+
+#define YYDEBUG	1
+
+
+%}
+
+/**************************************************************
+* Keywords of the language, and other meta-characters.
+**************************************************************/
+
+%token ABSTRACT_KW
+%token BASE_KW
+%token BOOL_KW
+%token BREAK_KW
+%token BYTE_KW
+%token CASE_KW
+%token CATCH_KW
+%token CHAR_KW
+%token CHECKED_KW
+%token CLASS_KW
+%token CONST_KW
+%token CONTINUE_KW
+%token DECIMAL_KW
+%token DEFAULT_KW
+%token DELEGATE_KW
+%token DO_KW
+%token DOUBLE_KW
+%token ELSE_KW
+%token ENUM_KW
+%token EVENT_KW
+%token EXPLICIT_KW
+%token EXTERN_KW
+%token FALSE_KW
+%token FINALLY_KW
+%token FIXED_KW
+%token FLOAT_KW
+%token FOR_KW
+%token FOREACH_KW
+%token GOTO_KW
+%token IF_KW
+%token IMPLICIT_KW
+%token IN_KW
+%token INT_KW
+%token INTERFACE_KW
+%token INTERNAL_KW
+%token IS_KW
+%token LOCK_KW
+%token LONG_KW
+%token NAMESPACE_KW
+%token NEW_KW
+%token NULL_KW
+%token OBJECT_KW
+%token OPERATOR_KW
+%token OUT_KW
+%token OVERRIDE_KW
+%token PARAMS_KW
+%token PRIVATE_KW
+%token PROTECTED_KW
+%token PUBLIC_KW
+%token READONLY_KW
+%token REF_KW
+%token RETURN_KW
+%token SBYTE_KW
+%token SEALED_KW
+%token SHORT_KW
+%token SIZEOF_KW
+%token STATIC_KW
+%token STRING_KW
+%token STRUCT_KW
+%token SWITCH_KW
+%token THIS_KW
+%token THROW_KW
+%token TRUE_KW
+%token TRY_KW
+%token TYPEOF_KW
+%token UINT_KW
+%token ULONG_KW
+%token UNCHECKED_KW
+%token UNSAFE_KW
+%token USHORT_KW
+%token USING_KW
+%token VIRTUAL_KW
+%token VOID_KW
+%token WHILE_KW
+
+
+/**************************************************************
+* Other C# reserved words (not mentioned in C# document).
+**************************************************************/
+%token SET_KW
+%token GET_KW
+
+
+/**************************************************************
+* Multi-characters symbols.
+**************************************************************/
+
+%token EQ_OP
+%token NE_OP
+%token LE_OP
+%token GE_OP
+%token ANDCON_OP
+%token ORCON_OP
+%token INCR_OP
+%token DECR_OP
+%token LSHIFT_OP
+%token RSHIFT_OP
+%token PLUSEQ_OP
+%token MINUSEQ_OP
+%token MULTEQ_OP
+%token DIVEQ_OP
+%token MODEQ_OP
+%token ANDEQ_OP
+%token OREQ_OP
+%token NOTEQ_OP
+%token LSHIFTEQ_OP
+%token RSHIFTEQ_OP
+
+/*******************************
+* Literals.
+*******************************/
+
+%token BOOLEAN_LITERAL
+%token INTEGER_LITERAL
+%token REAL_LITERAL
+%token CHARACTER_LITERAL
+%token STRING_LITERAL
+%token NULL_LITERAL
+%token IDENTIFIER
+
+
+%union
+{
+    bool boolValue;
+    int integerNumber;
+    unsigned int flag;
+    float floatNumber;
+    int longNumber[2];
+    double doubleNumber;
+}
+
+
+%start compilation_unit
+
+/* --------------- Beginning of the grammar. --------------- */
+%%
+
+literal:
+	BOOLEAN_LITERAL
+	| INTEGER_LITERAL
+	| REAL_LITERAL
+	| CHARACTER_LITERAL
+	| STRING_LITERAL
+	| NULL_LITERAL
+
+
+namespace_name:
+	namespace_or_type_name
+
+
+type_name:
+	namespace_or_type_name
+
+
+namespace_or_type_name:
+	identifier
+	| namespace_or_type_name '.' identifier
+
+
+type:
+	value_type
+	| reference_type
+	| pointer_type
+
+
+value_type:
+	struct_type
+	| enum_type
+
+
+struct_type:
+	type_name
+	| simple_type
+
+
+simple_type:
+	numeric_type
+	| BOOL_KW
+
+
+numeric_type:
+	integral_type
+	| floating_point_type
+	| DECIMAL_KW
+
+
+integral_type:
+	SBYTE_KW
+	| BYTE_KW
+	| SHORT_KW
+	| USHORT_KW
+	| INT_KW
+	| UINT_KW
+	| LONG_KW
+	| ULONG_KW
+	| CHAR_KW
+
+
+floating_point_type:
+	FLOAT_KW
+	| DOUBLE_KW
+
+
+enum_type:
+	type_name
+
+
+reference_type:
+	class_type
+	| interface_type
+	| array_type
+	| delegate_type
+
+
+class_type:
+	type_name
+	| OBJECT_KW
+	| STRING_KW
+
+
+interface_type:
+	type_name
+
+
+array_type:
+	non_array_type rank_specifiers
+
+
+non_array_type:
+	type
+
+
+rank_specifiers:
+	rank_specifier
+	| rank_specifiers rank_specifier
+
+
+rank_specifier:
+	'[' dim_separators.Opt ']'
+
+
+ dim_separators:
+	','
+	| dim_separators ','
+
+
+delegate_type:
+	type_name
+
+
+variable_reference:
+	expression
+
+
+argument_list:
+	argument
+	| argument_list ',' argument
+
+
+argument:
+	expression
+	| REF_KW variable_reference
+	| OUT_KW variable_reference
+
+
+primary_expression:
+	literal
+	| simple_name
+	| parenthesized_expression
+	| member_access
+	| invocation_expression
+	| element_access
+	| this_access
+	| base_access
+	| post_increment_expression
+	| post_decrement_expression
+	| new_expression
+	| typeof_expression
+	| sizeof_expression
+	| checked_expression
+	| unchecked_expression
+
+
+simple_name:
+	identifier
+
+parenthesized_expression:
+	'(' expression ')'
+
+member_access:
+	primary_expression '.' identifier
+	| predefined_type '.' identifier
+
+
+predefined_type:
+	BOOL_KW
+	| BYTE_KW
+	| CHAR_KW
+	| DECIMAL_KW
+	| DOUBLE_KW
+	| FLOAT_KW
+	| INT_KW
+	| LONG_KW
+	| OBJECT_KW
+	| SBYTE_KW
+	| SHORT_KW
+	| STRING_KW
+	| UINT_KW
+	| ULONG_KW
+	| USHORT_KW
+
+
+invocation_expression:
+	primary_expression '(' argument_list.Opt ')'
+
+
+element_access:
+	primary_expression '[' expression_list ']'
+
+
+expression_list:
+	expression
+	| expression_list ',' expression
+
+
+this_access:
+	THIS_KW
+
+
+base_access:
+	BASE_KW '.' identifier
+	| BASE_KW '[' expression_list ']'
+
+
+post_increment_expression:
+	primary_expression INCR_OP
+
+
+post_decrement_expression:
+	primary_expression DECR_OP
+
+
+new_expression:
+	object_creation_expression
+	| array_creation_expression
+	| delegate_creation_expression
+
+
+object_creation_expression:
+	NEW_KW type '(' argument_list.Opt ')'
+
+
+array_creation_expression:
+	NEW_KW non_array_type '[' expression_list ']' rank_specifiers.Opt array_initializer.Opt
+	| NEW_KW array_type array_initializer
+
+
+delegate_creation_expression:
+	NEW_KW delegate_type '(' expression ')'
+
+
+typeof_expression:
+	TYPEOF_KW '(' type ')'
+
+sizeof_expression:
+	SIZEOF_KW '(' type ')'
+
+checked_expression:
+	CHECKED_KW '(' expression ')'
+
+
+unchecked_expression:
+	UNCHECKED_KW '(' expression ')'
+
+
+unary_expression:
+	primary_expression
+	| '+' unary_expression
+	| '-' unary_expression
+	| '!' unary_expression
+	| '~' unary_expression
+	| '*' unary_expression
+	| '&' unary_expression
+	| pre_increment_expression
+	| pre_decrement_expression
+	| cast_expression
+
+
+pre_increment_expression:
+	INCR_OP unary_expression
+
+
+pre_decrement_expression:
+	DECR_OP unary_expression
+
+
+cast_expression:
+	'(' type ')' unary_expression
+
+
+multiplicative_expression:
+	unary_expression
+	| multiplicative_expression '*' unary_expression
+	| multiplicative_expression '/' unary_expression
+	| multiplicative_expression '%' unary_expression
+
+
+additive_expression:
+	multiplicative_expression
+	| additive_expression '+' multiplicative_expression
+	| additive_expression '-' multiplicative_expression
+
+
+shift_expression:
+	additive_expression 
+	| shift_expression LSHIFT_OP additive_expression
+	| shift_expression RSHIFT_OP additive_expression
+
+
+relational_expression:
+	shift_expression
+	| relational_expression '<' shift_expression
+	| relational_expression '>' shift_expression
+	| relational_expression LE_OP shift_expression
+	| relational_expression GE_OP shift_expression
+	| relational_expression IS_KW reference_type
+
+
+equality_expression:
+	relational_expression
+	| equality_expression EQ_OP relational_expression
+	| equality_expression NE_OP relational_expression
+
+
+and_expression:
+	equality_expression
+	| and_expression '&' equality_expression
+
+
+exclusive_or_expression:
+	and_expression
+	| exclusive_or_expression '^' and_expression
+
+
+inclusive_or_expression:
+	exclusive_or_expression
+	| inclusive_or_expression '|' exclusive_or_expression
+
+
+conditional_and_expression:
+	inclusive_or_expression
+	| conditional_and_expression ANDCON_OP inclusive_or_expression
+
+
+conditional_or_expression:
+	conditional_and_expression
+	| conditional_or_expression ORCON_OP conditional_and_expression
+
+
+conditional_expression:
+	conditional_or_expression
+	| conditional_or_expression '?' expression ':' expression
+
+
+assignment:
+	unary_expression assignment_operator expression
+
+
+assignment_operator:
+	'='
+	| PLUSEQ_OP
+	| MINUSEQ_OP
+	| MULTEQ_OP
+	| DIVEQ_OP
+	| MODEQ_OP
+	| ANDEQ_OP
+	| OREQ_OP
+	| NOTEQ_OP
+	| LSHIFTEQ_OP
+	| RSHIFTEQ_OP
+
+
+expression:
+	conditional_expression
+	| assignment
+
+
+constant_expression:
+	expression
+
+
+boolean_expression:
+	expression
+
+
+statement:
+	labeled_statement
+	| declaration_statement
+	| embedded_statement
+
+
+embedded_statement:
+	block
+	| empty_statement
+	| expression_statement
+	| selection_statement
+	| iteration_statement
+	| jump_statement
+	| try_statement
+	| checked_statement
+	| unchecked_statement
+	| lock_statement
+
+
+block:
+	'{' statement_list.Opt '}'
+
+
+statement_list:
+	statement
+	| statement_list statement
+
+
+empty_statement:
+	';'
+
+
+labeled_statement:
+	identifier ':' statement
+
+
+declaration_statement:
+	local_variable_declaration ';'
+	| local_constant_declaration ';'
+
+
+local_variable_declaration:
+	type variable_declarators
+
+
+variable_declarators:
+	variable_declarator
+	| variable_declarators ',' variable_declarator
+
+
+variable_declarator:
+	identifier
+	| identifier '=' variable_initializer
+
+
+variable_initializer:
+	expression
+	| array_initializer
+
+
+local_constant_declaration:
+	CONST_KW type constant_declarators
+
+
+constant_declarators:
+	constant_declarator
+	| constant_declarators ',' constant_declarator
+
+
+constant_declarator:
+	identifier '=' constant_expression
+
+
+expression_statement:
+	statement_expression ';'
+
+
+statement_expression:
+	invocation_expression
+	| object_creation_expression
+	| assignment
+	| post_increment_expression
+	| post_decrement_expression
+	| pre_increment_expression
+	| pre_decrement_expression
+
+
+selection_statement:
+	if_statement
+	| switch_statement
+
+
+if_statement:
+	IF_KW '(' boolean_expression ')' embedded_statement
+	| IF_KW '(' boolean_expression ')' embedded_statement ELSE_KW embedded_statement
+
+
+switch_statement:
+	SWITCH_KW '(' expression ')' switch_block
+
+
+switch_block:
+	'{' switch_sections.Opt '}'
+
+
+switch_sections:
+	switch_section
+	| switch_sections switch_section
+
+
+switch_section:
+	switch_labels statement_list
+
+
+switch_labels:
+	switch_label
+	| switch_labels switch_label
+
+
+switch_label:
+	CASE_KW constant_expression ':'
+	| DEFAULT_KW ':'
+
+
+iteration_statement:
+	while_statement
+	| do_statement
+	| for_statement
+	| foreach_statement
+
+
+while_statement:
+	WHILE_KW '(' boolean_expression ')' embedded_statement
+
+
+do_statement:
+	DO_KW embedded_statement WHILE_KW '(' boolean_expression ')' ';'
+
+
+for_statement:
+	FOR_KW '(' for_initializer.Opt ';' for_condition.Opt ';' for_iterator.Opt ')' embedded_statement
+
+
+for_initializer:
+	local_variable_declaration
+	| statement_expression_list
+
+
+for_condition:
+	boolean_expression
+
+
+for_iterator:
+	statement_expression_list
+
+
+statement_expression_list:
+	statement_expression
+	| statement_expression_list ',' statement_expression
+
+
+foreach_statement:
+	FOREACH_KW '(' type identifier IN_KW expression ')' embedded_statement
+
+
+jump_statement:
+	break_statement
+	| continue_statement
+	| goto_statement
+	| return_statement
+	| throw_statement
+
+
+break_statement:
+	BREAK_KW ';'
+
+
+continue_statement:
+	CONTINUE_KW ';'
+
+
+goto_statement:
+	GOTO_KW identifier ';'
+	| GOTO_KW CASE_KW constant_expression ';'
+	| GOTO_KW DEFAULT_KW ';'
+
+
+return_statement:
+	RETURN_KW expression.Opt ';'
+
+
+throw_statement:
+	THROW_KW expression.Opt ';'
+
+
+try_statement:
+	TRY_KW block catch_clauses
+	| TRY_KW block finally_clause
+	| TRY_KW block catch_clauses finally_clause
+
+
+catch_clauses:
+	specific_catch_clauses general_catch_clause.Opt
+	| specific_catch_clauses.Opt general_catch_clause
+
+
+specific_catch_clauses:
+	specific_catch_clause
+	| specific_catch_clauses specific_catch_clause
+
+
+specific_catch_clause:
+	CATCH_KW '(' class_type identifier.Opt ')' block
+
+
+general_catch_clause:
+	CATCH_KW block
+
+
+finally_clause:
+	FINALLY_KW block
+
+
+checked_statement:
+	CHECKED_KW block
+
+
+unchecked_statement:
+	UNCHECKED_KW block
+
+
+lock_statement:
+	LOCK_KW '(' expression ')' embedded_statement
+
+
+compilation_unit:
+	using_directives.Opt namespace_member_declarations.Opt
+
+
+namespace_declaration:
+	NAMESPACE_KW qualified_identifier namespace_body OptSemiColon
+
+
+qualified_identifier:
+	identifier
+	| qualified_identifier '.' identifier
+
+
+namespace_body:
+	'{' using_directives.Opt namespace_member_declarations.Opt '}'
+
+
+using_directives:
+	using_directive
+	| using_directives using_directive
+
+
+using_directive:
+	using_alias_directive
+	| using_namespace_directive
+
+
+using_alias_directive:
+	USING_KW identifier '=' namespace_or_type_name ';'
+
+
+using_namespace_directive:
+	USING_KW namespace_name ';'
+
+
+namespace_member_declarations:
+	namespace_member_declaration
+	| namespace_member_declarations namespace_member_declaration
+
+namespace_member_declaration:
+	namespace_declaration
+	| type_declaration
+
+
+type_declaration:
+	class_declaration
+	| struct_declaration
+	| interface_declaration
+	| enum_declaration
+	| delegate_declaration
+
+
+class_declaration:
+	attributes.Opt class_modifiers.Opt CLASS_KW identifier class_base.Opt class_body OptSemiColon
+
+
+class_modifiers:
+	class_modifier
+	| class_modifiers class_modifier
+
+
+class_modifier:
+	NEW_KW
+	| PUBLIC_KW
+	| PROTECTED_KW
+	| INTERNAL_KW
+	| PRIVATE_KW
+	| ABSTRACT_KW
+	| SEALED_KW
+
+
+class_base:
+	':' class_type
+	| ':' interface_type_list
+	| ':' class_type ',' interface_type_list
+
+
+interface_type_list:
+	interface_type
+	| interface_type_list ',' interface_type
+
+
+class_body:
+	'{' class_member_declarations.Opt '}'
+
+
+class_member_declarations:
+	class_member_declaration
+	| class_member_declarations class_member_declaration
+
+
+class_member_declaration:
+	constant_declaration
+	| field_declaration
+	| method_declaration
+	| property_declaration
+	| event_declaration
+	| indexer_declaration
+	| operator_declaration
+	| constructor_declaration
+	| destructor_declaration
+	| static_constructor_declaration
+	| type_declaration
+
+
+constant_declaration:
+	attributes.Opt constant_modifiers.Opt CONST_KW type constant_declarators ';'
+
+
+constant_modifiers:
+	constant_modifier
+	| constant_modifiers constant_modifier
+
+
+constant_modifier:
+	NEW_KW
+	| PUBLIC_KW
+	| PROTECTED_KW
+	| INTERNAL_KW
+	| PRIVATE_KW
+
+
+constant_declarators:
+	constant_declarator
+	| constant_declarators ',' constant_declarator
+
+
+constant_declarator:
+	identifier '=' constant_expression
+
+
+field_declaration:
+	attributes.Opt field_modifiers.Opt type variable_declarators ';'
+
+
+field_modifiers:
+	field_modifier
+	| field_modifiers field_modifier
+
+
+field_modifier:
+	NEW_KW
+	| PUBLIC_KW
+	| PROTECTED_KW
+	| INTERNAL_KW
+	| PRIVATE_KW
+	| STATIC_KW
+	| READONLY_KW
+
+
+variable_declarators:
+	variable_declarator
+	| variable_declarators ',' variable_declarator
+
+
+variable_declarator:
+	identifier
+	| identifier '=' variable_initializer
+
+
+variable_initializer:
+	expression
+	| array_initializer
+
+
+method_declaration:
+	method_header method_body
+
+
+method_header:
+	attributes.Opt method_modifiers.Opt return_type member_name '(' formal_parameter_list.Opt ')'
+
+
+method_modifiers:
+	method_modifier
+	| method_modifiers method_modifier
+
+
+method_modifier:
+	NEW_KW
+	| PUBLIC_KW
+	| PROTECTED_KW
+	| INTERNAL_KW
+	| PRIVATE_KW
+	| STATIC_KW
+	| VIRTUAL_KW
+	| OVERRIDE_KW
+	| ABSTRACT_KW
+	| EXTERN_KW
+
+
+return_type:
+	type
+	| VOID_KW
+
+
+member_name:
+	identifier
+	| interface_type '.' identifier
+
+
+method_body:
+	block
+	| ';'
+
+
+formal_parameter_list:
+	formal_parameter
+	| formal_parameter_list ',' formal_parameter
+
+
+formal_parameter:
+	attributes.Opt parameter_modifier.Opt type identifier
+
+
+parameter_modifier:
+	REF_KW
+	| OUT_KW
+	| PARAMS_KW
+
+
+property_declaration:
+	attributes.Opt property_modifiers.Opt type member_name '{' accessor_declarations '}'
+
+
+property_modifiers:
+	property_modifier
+	| property_modifiers property_modifier
+
+
+property_modifier:
+	NEW_KW
+	| PUBLIC_KW
+	| PROTECTED_KW
+	| INTERNAL_KW
+	| PRIVATE_KW
+	| STATIC_KW
+
+
+member_name:
+	identifier
+	| interface_type '.' identifier
+
+
+accessor_declarations:
+	get_accessor_declaration set_accessor_declaration.Opt
+	| set_accessor_declaration get_accessor_declaration.Opt
+
+
+get_accessor_declaration:
+	accessor_modifier.Opt GET_KW accessor_body
+
+
+set_accessor_declaration:
+	accessor_modifier.Opt SET_KW accessor_body
+
+
+accessor_modifier:
+	VIRTUAL_KW
+	| OVERRIDE_KW
+	| ABSTRACT_KW
+
+
+accessor_body:
+	block
+	| ';'
+
+
+event_declaration:
+	event_field_declaration
+	event_property_declaration
+
+
+event_field_declaration:
+	attributes.Opt event_modifiers.Opt EVENT_KW type variable_declarators ';'
+
+
+event_property_declaration:
+	attributes.Opt event_modifiers.Opt EVENT_KW type member_name '{' accessor_declarations '}'
+
+
+event_modifiers:
+	event_modifier
+	| event_modifiers event_modifier
+
+
+event_modifier:
+	NEW_KW
+	| PUBLIC_KW
+	| PROTECTED_KW
+	| INTERNAL_KW
+	| PRIVATE_KW
+	| STATIC_KW
+
+
+indexer_declaration:
+	attributes.Opt indexer_modifiers.Opt indexer_declarator '{' accessor_declarations '}'
+
+
+indexer_modifiers:
+	indexer_modifier
+	| indexer_modifiers indexer_modifier
+
+
+indexer_modifier:
+	NEW_KW
+	| PUBLIC_KW
+	| PROTECTED_KW
+	| INTERNAL_KW
+	| PRIVATE_KW
+
+
+indexer_declarator:
+	type THIS_KW '[' formal_index_parameter_list ']'
+	| type interface_type '.' THIS_KW '[' formal_index_parameter_list ']'
+
+
+formal_index_parameter_list:
+	formal_index_parameter
+	| formal_index_parameter_list ',' formal_index_parameter
+
+
+formal_index_parameter:
+	attributes.Opt type identifier
+
+
+operator_declaration:
+	attributes.Opt operator_modifiers operator_declarator block
+
+
+operator_modifiers:
+	PUBLIC_KW STATIC_KW
+	| STATIC_KW PUBLIC_KW
+
+
+operator_declarator:
+	unary_operator_declarator
+	| binary_operator_declarator
+	| conversion_operator_declarator
+
+
+unary_operator_declarator:
+	type OPERATOR_KW overloadable_unary_operator '(' type identifier ')'
+
+
+overloadable_unary_operator:
+	'+'
+	| '-'
+	| '!'
+	| '~'
+	| INCR_OP
+	| DECR_OP
+	| TRUE_KW
+	| FALSE_KW
+
+
+binary_operator_declarator:
+	type OPERATOR_KW overloadable_binary_operator '(' type identifier ',' type identifier ')'
+
+
+overloadable_binary_operator:
+	'+'
+	| '-'
+	| '*'
+	| '/'
+	| '%'
+	| '&'
+	| '|'
+	| '^'
+	| LSHIFT_OP
+	| RSHIFT_OP
+	| EQ_OP
+	| NE_OP
+	| '>'
+	| '<'
+	| GE_OP
+	| LE_OP
+
+
+conversion_operator_declarator:
+	IMPLICIT_KW OPERATOR_KW type '(' type identifier ')'
+	| EXPLICIT_KW OPERATOR_KW type '(' type identifier ')'
+
+
+constructor_declaration:
+	attributes.Opt constructor_modifiers.Opt constructor_declarator block
+
+
+constructor_modifiers:
+	constructor_modifier
+	| constructor_modifiers constructor_modifier
+
+
+constructor_modifier:
+	PUBLIC_KW
+	| PROTECTED_KW
+	| INTERNAL_KW
+	| PRIVATE_KW
+
+
+constructor_declarator:
+	identifier '(' formal_parameter_list.Opt ')' constructor_initializer.Opt
+
+
+constructor_initializer:
+	':' BASE_KW '(' argument_list.Opt ')'
+	| ':' THIS_KW '(' argument_list.Opt ')'
+
+
+destructor_declaration:
+	attributes.Opt '~' identifier '(' ')' block
+
+
+static_constructor_declaration:
+	attributes.Opt STATIC_KW identifier '(' ')' block
+
+
+struct_declaration:
+	attributes.Opt struct_modifiers.Opt STRUCT_KW identifier struct_interfaces.Opt struct_body OptSemiColon
+
+
+struct_modifiers:
+	struct_modifier
+	| struct_modifiers struct_modifier
+
+
+struct_modifier:
+	NEW_KW
+	| PUBLIC_KW
+	| PROTECTED_KW
+	| INTERNAL_KW
+	| PRIVATE_KW
+
+
+struct_interfaces:
+	':' interface_type_list
+
+
+struct_body:
+	'{' struct_member_declarations.Opt '}'
+
+
+struct_member_declarations:
+	struct_member_declaration
+	| struct_member_declarations struct_member_declaration
+
+
+struct_member_declaration:
+	class_member_declaration
+
+
+array_type:
+	non_array_type rank_specifiers
+
+
+non_array_type:
+	type
+
+
+rank_specifiers:
+	rank_specifier
+	| rank_specifiers rank_specifier
+
+
+rank_specifier:
+	'[' dim_separators.Opt ']'
+
+
+dim_separators:
+	','
+	| dim_separators ','
+
+
+array_initializer:
+	'{' variable_initializer_list.Opt '}'
+	| '{' variable_initializer_list ',' '}'
+
+
+variable_initializer_list:
+	variable_initializer
+	| variable_initializer_list ',' variable_initializer
+
+
+variable_initializer:
+	expression
+	| array_initializer
+
+
+interface_declaration:
+	attributes.Opt interface_modifiers.Opt INTERFACE_KW identifier interface_base.Opt interface_body OptSemiColon
+
+
+interface_modifiers:
+	interface_modifier
+	| interface_modifiers interface_modifier
+
+
+interface_modifier:
+	NEW_KW
+	| PUBLIC_KW
+	| PROTECTED_KW
+	| INTERNAL_KW
+	| PRIVATE_KW
+
+
+interface_base:
+	':' interface_type_list
+
+
+interface_body:
+	'{' interface_member_declarations.Opt '}'
+
+
+interface_member_declarations:
+	interface_member_declaration
+	| interface_member_declarations interface_member_declaration
+
+
+interface_member_declaration:
+	interface_method_declaration
+	| interface_property_declaration
+	| interface_event_declaration
+	| interface_indexer_declaration
+
+
+interface_method_declaration:
+	attributes.Opt OptNewKeyword return_type identifier '(' formal_parameter_list.Opt ')' ';'
+
+
+OptNewKeyword:
+ 	/* Nothing. */
+	| NEW_KW
+
+
+interface_property_declaration:
+	attributes.Opt OptNewKeyword type identifier '{' interface_accessors '}'
+
+
+interface_accessors:
+	GET_KW ';'
+	| SET_KW ';'
+	| GET_KW ';' SET_KW ';'
+	| SET_KW ';' GET_KW ';'
+
+
+interface_event_declaration:
+	attributes.Opt OptNewKeyword EVENT_KW type identifier ';'
+
+
+interface_indexer_declaration:
+	attributes.Opt OptNewKeyword type THIS_KW '[' formal_index_parameter_list ']' '{' interface_accessors '}'
+
+
+enum_declaration:
+	attributes.Opt enum_modifiers.Opt ENUM_KW identifier enum_base.Opt enum_body OptSemiColon
+
+
+enum_modifiers:
+	enum_modifier
+	| enum_modifiers enum_modifier
+
+
+enum_modifier:
+	NEW_KW
+	| PUBLIC_KW
+	| PROTECTED_KW
+	| INTERNAL_KW
+	| PRIVATE_KW
+
+
+enum_base:
+	':' integral_type
+
+
+enum_body:
+	'{' enum_member_declarations.Opt '}'
+	| '{' enum_member_declarations ',' '}'
+
+
+enum_member_declarations:
+	enum_member_declaration
+	| enum_member_declarations ',' enum_member_declaration
+
+
+enum_member_declaration:
+	attributes.Opt identifier
+	| attributes.Opt identifier '=' constant_expression
+
+
+delegate_declaration:
+	attributes.Opt delegate_modifiers.Opt DELEGATE_KW result_type identifier '(' formal_parameter_list.Opt ')' ';'
+
+
+result_type:
+	type
+	| VOID_KW
+
+delegate_modifiers:
+	delegate_modifier
+	| delegate_modifiers delegate_modifier
+
+
+delegate_modifier:
+	NEW_KW
+	| PUBLIC_KW
+	| PROTECTED_KW
+	| INTERNAL_KW
+	| PRIVATE_KW
+
+
+attributes:
+	attribute_sections
+
+
+attribute_sections:
+	attribute_section
+	| attribute_sections attribute_section
+
+
+attribute_section:
+	'[' attribute_list ']'
+	| '[' attribute_list ',' ']'
+
+
+attribute_list:
+	attribute
+	| attribute_list ',' attribute
+
+
+attribute:
+	attribute_name attribute_arguments.Opt
+
+
+attribute_name:
+	/* GRMOD: reserved_attribute_name */
+	identifier
+	| type_name
+
+
+attribute_arguments:
+	'(' positional_argument_list ')'
+	| '(' positional_argument_list ',' named_argument_list ')'
+	| '(' named_argument_list ')'
+
+
+positional_argument_list:
+	positional_argument
+	| positional_argument_list ',' positional_argument
+
+
+positional_argument:
+	attribute_argument_expression
+
+
+named_argument_list:
+	named_argument
+	| named_argument_list ',' named_argument
+
+
+named_argument:
+	identifier '=' attribute_argument_expression
+
+
+attribute_argument_expression:
+	expression
+
+
+pointer_type:
+	unmanaged_type '*'
+	| VOID_KW '*'
+
+
+unmanaged_type:
+	value_type
+
+/***
+* Helper rules.
+***/
+identifier:
+	IDENTIFIER
+
+OptSemiColon:
+	/* Nothing. */
+	| ';'
+
+
+dim_separators.Opt:
+	/* Nothing. */
+	| dim_separators
+
+
+argument_list.Opt:
+	/* Nothing. */
+	| argument_list
+
+ 
+rank_specifiers.Opt:
+	/* Nothing. */
+	| rank_specifiers
+
+ 
+array_initializer.Opt:
+	/* Nothing. */
+	| array_initializer
+
+ 
+statement_list.Opt:
+	/* Nothing. */
+	| statement_list
+
+ 
+switch_sections.Opt:
+	/* Nothing. */
+	| switch_sections
+
+ 
+for_initializer.Opt:
+	/* Nothing. */
+	| for_initializer
+
+ 
+for_condition.Opt:
+	/* Nothing. */
+	| for_condition
+
+ 
+for_iterator.Opt:
+	/* Nothing. */
+	| for_iterator
+
+ 
+expression.Opt:
+	/* Nothing. */
+	| expression
+
+ 
+general_catch_clause.Opt:
+	/* Nothing. */
+	| general_catch_clause
+
+ 
+specific_catch_clauses.Opt:
+	/* Nothing. */
+	| specific_catch_clauses
+
+ 
+identifier.Opt:
+	/* Nothing. */
+	| identifier
+
+ 
+using_directives.Opt:
+	/* Nothing. */
+	| using_directives
+
+ 
+namespace_member_declarations.Opt:
+	/* Nothing. */
+	| namespace_member_declarations
+
+ 
+attributes.Opt:
+	/* Nothing. */
+	| attributes
+
+ 
+class_modifiers.Opt:
+	/* Nothing. */
+	| class_modifiers
+
+ 
+class_base.Opt:
+	/* Nothing. */
+	| class_base
+
+ 
+class_member_declarations.Opt:
+	/* Nothing. */
+	| class_member_declarations
+
+ 
+constant_modifiers.Opt:
+	/* Nothing. */
+	| constant_modifiers
+
+ 
+field_modifiers.Opt:
+	/* Nothing. */
+	| field_modifiers
+
+ 
+method_modifiers.Opt:
+	/* Nothing. */
+	| method_modifiers
+
+ 
+formal_parameter_list.Opt:
+	/* Nothing. */
+	| formal_parameter_list
+
+ 
+parameter_modifier.Opt:
+	/* Nothing. */
+	| parameter_modifier
+
+ 
+property_modifiers.Opt:
+	/* Nothing. */
+	| property_modifiers
+
+ 
+set_accessor_declaration.Opt:
+	/* Nothing. */
+	| set_accessor_declaration
+
+ 
+get_accessor_declaration.Opt:
+	/* Nothing. */
+	| get_accessor_declaration
+
+ 
+accessor_modifier.Opt:
+	/* Nothing. */
+	| accessor_modifier
+
+ 
+event_modifiers.Opt:
+	/* Nothing. */
+	| event_modifiers
+
+ 
+indexer_modifiers.Opt:
+	/* Nothing. */
+	| indexer_modifiers
+
+ 
+constructor_modifiers.Opt:
+	/* Nothing. */
+	| constructor_modifiers
+
+ 
+constructor_initializer.Opt:
+	/* Nothing. */
+	| constructor_initializer
+
+ 
+struct_modifiers.Opt:
+	/* Nothing. */
+	| struct_modifiers
+
+ 
+struct_interfaces.Opt:
+	/* Nothing. */
+	| struct_interfaces
+
+ 
+struct_member_declarations.Opt:
+	/* Nothing. */
+	| struct_member_declarations
+
+ 
+variable_initializer_list.Opt:
+	/* Nothing. */
+	| variable_initializer_list
+
+ 
+interface_modifiers.Opt:
+	/* Nothing. */
+	| interface_modifiers
+
+ 
+interface_base.Opt:
+	/* Nothing. */
+	| interface_base
+
+ 
+interface_member_declarations.Opt:
+	/* Nothing. */
+	| interface_member_declarations
+
+ 
+enum_modifiers.Opt:
+	/* Nothing. */
+	| enum_modifiers
+
+ 
+enum_base.Opt:
+	/* Nothing. */
+	| enum_base
+
+ 
+enum_member_declarations.Opt:
+	/* Nothing. */
+	| enum_member_declarations
+
+ 
+delegate_modifiers.Opt:
+	/* Nothing. */
+	| delegate_modifiers
+
+ 
+attribute_arguments.Opt:
+	/* Nothing. */
+	| attribute_arguments
+
+ 

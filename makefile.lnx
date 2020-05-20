@@ -1,0 +1,95 @@
+#/************************************************
+#* File: makefile.
+#* Desc: Building definitions for the Sharp Compiler.
+
+PROJECT= CompSharp
+
+include $(AKRAPROJ)/geneMake.lnx
+
+# Sharp level 1 is implied (Java).
+# level 2 is FSM.
+# level 3 is SQL.
+# level 2_2 is Real-Time (needs 2 to work).
+SHARP_LEVELS= -DSHARP_LEVEL_2  -DSHARP_LEVEL_3
+
+BISONFLAGS= -dv -p srp
+
+CPPSRCS= autoLexico.cpp \
+	autoSyntax.cpp \
+	absSyntaxElement.cpp \
+	blockList.cpp \
+	classMembers.cpp \
+	compiler.cpp \
+	customFlex.cpp \
+	defSymbols.cpp \
+	errors.cpp \
+	expressions.cpp \
+	genCompiler.cpp \
+	genLexer.cpp \
+	hashBucket.cpp \
+	hashElement.cpp \
+	hashManager.cpp \
+	identifiers.cpp \
+	lexHelp.cpp \
+	listStmts.cpp \
+	poolIdent.cpp \
+	sharpLexer.cpp \
+	statements.cpp \
+	typeDef.cpp \
+	varDecl.cpp
+
+
+OTHER_SRCS= baseGram.ycc \
+	 baseLex.lcc
+
+
+
+TESTSRCS= sc.cpp
+
+
+TESTOBJS= $(TESTSRCS:.cpp=.o)
+
+
+# Linker Options:
+LIBS= -l$(PROJECT) \
+	-lstdc++ -lfl
+LDFLAGS= -L$(LIB_PATH)
+
+#
+# Compiler Options: 
+# Threading: -DNeXT_Thread
+# Debugs: -DDBGLEVEL_1 -DDBGLEVEL_2 -DDBGLEVEL_3 -DDBGLEVEL_MATH -DDEBUG_MEMORY
+DEBUG_LEVELS= -DDBGLEVEL_1 -DDBGLEVEL_2 -DDBGLEVEL_3
+CFLAGS= -g $(SHARP_LEVELS) $(DEBUG_LEVELS)
+
+
+all: sc
+
+lib: $(STATNAMELIB)
+
+sc: $(TESTOBJS) $(STATNAMELIB)
+	(cd $(OBJ_PATH) && \
+	    $(CC) $(INC) $(CFLAGS) -o $@ $(TESTOBJS) $(LDFLAGS) $(LIBS) \
+	)
+
+$(STATNAMELIB): $(OBJS)
+	( cd $(OBJ_PATH) && \
+	    $(AR) cru $@ $(OBJS) $(HACKLIBS) && \
+	    $(RANLIB) $@ && \
+	    cp $@ $(LIB_PATH) \
+	)
+
+autoLexico.cpp: baseLex.lcc
+	$(LEX) $(FLEXFLAGS) -oautoLexico.cpp $<
+	mv autoLexico.cpp src
+
+autoSyntax.cpp: baseGram.ycc
+	$(YACC) $(BISONFLAGS) -b autoSyntax $<
+	mv autoSyntax.tab.ccc src/autoSyntax.cpp
+	mv autoSyntax.output src
+	mv autoSyntax.tab.hcc src/gramTokens.h
+
+# gramTokens.h: autoSyntax.cpp
+
+lexHelp.cpp: gramTokens.h
+

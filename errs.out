@@ -1,0 +1,15 @@
+g++ -Iinc -I/home/hugo/AkraLog/Projets/2Plzen/Base/include -g -DSHARP_LEVEL_2  -DSHARP_LEVEL_3 -DDBGLEVEL_1 -DDBGLEVEL_2 -DDBGLEVEL_3 -o /home/hugo/Bins/Dflat/CompSharp/lnx_386/autoSyntax.o -c  src/autoSyntax.cpp
+src/baseGram.ycc: In function `int srpparse ()':
+src/baseGram.ycc:1412: no matching function for call to 
+`InitArrayExpr::InitArrayExpr (BlockListAk *&)'
+inc/expressions.h:114: candidates are: InitArrayExpr::InitArrayExpr ()
+inc/expressions.h:118:                 InitArrayExpr::InitArrayExpr 
+(const InitArrayExpr &)
+src/baseGram.ycc:1415: no matching function for call to 
+`InitArrayExpr::InitArrayExpr (BlockListAk *&)'
+inc/expressions.h:114: candidates are: InitArrayExpr::InitArrayExpr ()
+inc/expressions.h:118:                 InitArrayExpr::InitArrayExpr 
+(const InitArrayExpr &)
+src/baseGram.ycc:1416: no matching function for call to 
+`ExpressionSrp::setContinuation ()'
+make: *** [autoSyntax.o] Error 1

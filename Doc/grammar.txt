@@ -1,0 +1,1262 @@
+literal:
+	boolean-literal
+	integer-literal
+	real-literal
+	character-literal
+	string-literal
+	null-literal
+
+
+namespace-name:
+	namespace-or-type-name
+
+
+type-name:
+	namespace-or-type-name
+
+
+namespace-or-type-name:
+	identifier
+	namespace-or-type-name   .   identifier
+
+
+type:
+	value-type
+	reference-type
+	pointer-type
+
+
+value-type:
+	struct-type
+	enum-type
+
+
+struct-type:
+	type-name
+	simple-type
+
+
+simple-type:
+	numeric-type
+	BOOL_KW
+
+
+numeric-type:
+	integral-type
+	floating-point-type
+	DECIMAL_KW
+
+
+integral-type:
+	SBYTE_KW
+	BYTE_KW
+	SHORT_KW
+	USHORT_KW
+	INT_KW
+	UINT_KW
+	LONG_KW
+	ULONG_KW
+	CHAR_KW
+
+
+floating-point-type:
+	FLOAT_KW
+	DOUBLE_KW
+
+
+enum-type:
+	type-name
+
+
+reference-type:
+	class-type
+	interface-type
+	array-type
+	delegate-type
+
+
+class-type:
+	type-name
+	OBJECT_KW
+	STRING_KW
+
+
+interface-type:
+	type-name
+
+
+array-type:
+	non-array-type   rank-specifiers
+
+
+non-array-type:
+	type
+
+
+rank-specifiers:
+	rank-specifier
+	rank-specifiers rank-specifier
+
+
+rank-specifier:
+	'['   dim-separators.Opt   ']'
+
+
+ dim-separators:
+	','
+	dim-separators ','
+
+
+delegate-type:
+	type-name
+
+
+variable-reference:
+	expression
+
+
+argument-list:
+	argument
+	argument-list ',' argument
+
+
+argument:
+	expression
+	REF_KW variable-reference
+	OUT_KW variable-reference
+
+
+primary-expression:
+	literal
+	simple-name
+	parenthesized-expression
+	member-access
+	invocation-expression
+	element-access
+	this-access
+	base-access
+	post-increment-expression
+	post-decrement-expression
+	new-expression
+	typeof-expression
+	sizeof-expression
+	checked-expression
+	unchecked-expression
+
+
+simple-name:
+	identifier
+
+
+member-access:
+	primary-expression '.' identifier
+	predefined-type '.' identifier
+
+
+predefined-type:
+	BOOL_KW
+	BYTE_KW
+	CHAR_KW
+	DECIMAL_KW
+	DOUBLE_KW
+	FLOAT_KW
+	INT_KW
+	LONG_KW
+	OBJECT_KW
+	SBYTE_KW
+	SHORT_KW
+	STRING_KW
+	UINT_KW
+	ULONG_KW
+	USHORT_KW
+
+
+invocation-expression:
+	primary-expression '(' argument-listopt ')'
+
+
+element-access:
+	primary-expression '[' expression-list ']'
+
+
+expression-list:
+	expression
+	expression-list ',' expression
+
+
+this-access:
+	THIS_KW
+
+
+base-access:
+	BASE_KW '.' identifier
+	BASE_KW '[' expression-list ']'
+
+
+post-increment-expression:
+	primary-expression   INCR_OP
+
+
+post-decrement-expression:
+	primary-expression   DECR_OP
+
+
+new-expression:
+	object-creation-expression
+	array-creation-expression
+	delegate-creation-expression
+
+
+object-creation-expression:
+	NEW_KW type '(' argument-listopt ')'
+
+
+array-creation-expression:
+	NEW_KW non-array-type '[' expression-list   ]   rank-specifiers.Opt array-initializer.Opt
+	NEW_KW array-type array-initializer
+
+
+delegate-creation-expression:
+	NEW_KW delegate-type '(' expression ')'
+
+
+typeof-expression:
+	TYPEOF_KW '(' type ')'
+
+
+checked-expression:
+	CHECKED_KW '(' expression ')'
+
+
+unchecked-expression:
+	UNCHECKED_KW '(' expression ')'
+
+
+unary-expression:
+	primary-expression
+	'+' unary-expression
+	'-' unary-expression
+	'!' unary-expression
+	'~' unary-expression
+	'*' unary-expression
+	'&' unary-expression
+	pre-increment-expression
+	pre-decrement-expression
+	cast-expression
+
+
+pre-increment-expression:
+	INCR_OP unary-expression
+
+
+pre-decrement-expression:
+	DECR_OP unary-expression
+
+
+cast-expression:
+	'(' type ')' unary-expression
+
+
+multiplicative-expression:
+	unary-expression
+	multiplicative-expression '*' unary-expression
+	multiplicative-expression '/' unary-expression
+	multiplicative-expression '%' unary-expression
+
+
+additive-expression:
+	multiplicative-expression
+	additive-expression '+' multiplicative-expression
+	additive-expression '-' multiplicative-expression
+
+
+shift-expression:
+	additive-expression 
+	shift-expression LSHIFT_OP additive-expression
+	shift-expression RSHIFT_OP additive-expression
+
+
+relational-expression:
+	shift-expression
+	relational-expression '<' shift-expression
+	relational-expression '>' shift-expression
+	relational-expression LE_OP shift-expression
+	relational-expression GE_OP shift-expression
+	relational-expression IS_KW reference-type
+
+
+equality-expression:
+	relational-expression
+	equality-expression EQ_OP relational-expression
+	equality-expression NE_OP relational-expression
+
+
+and-expression:
+	equality-expression
+	and-expression '&' equality-expression
+
+
+exclusive-or-expression:
+	and-expression
+	exclusive-or-expression '^' and-expression
+
+
+inclusive-or-expression:
+	exclusive-or-expression
+	inclusive-or-expression '|' exclusive-or-expression
+
+
+conditional-and-expression:
+	inclusive-or-expression
+	conditional-and-expression ANDCON_OP inclusive-or-expression
+
+
+conditional-or-expression:
+	conditional-and-expression
+	conditional-or-expression ORCON_OP conditional-and-expression
+
+
+conditional-expression:
+	conditional-or-expression
+	conditional-or-expression '?' expression ':' expression
+
+
+assignment:
+	unary-expression   assignment-operator   expression
+
+
+assignment-operator:
+	'='
+	PLUSEQ_OP
+	MINUSEQ_OP
+	MULTEQ_OP
+	DIVEQ_OP
+	REMEQ_OP
+	ANDEQ_OP
+	OREQ_OP
+	ANDEQ_OP
+	LSHIFTEQ_OP
+	RSHIFTEQ_OP
+
+
+expression:
+	conditional-expression
+	assignment
+
+
+constant-expression:
+	expression
+
+
+boolean-expression:
+	expression
+
+
+statement:
+	labeled-statement
+	declaration-statement
+	embedded-statement
+
+
+embedded-statement:
+	block
+	empty-statement
+	expression-statement
+	selection-statement
+	iteration-statement
+	jump-statement
+	try-statement
+	checked-statement
+	unchecked-statement
+	lock-statement
+
+
+block:
+	'{' statement-list.Opt '}'
+
+
+statement-list:
+	statement
+	statement-list   statement
+
+
+empty-statement:
+	';'
+
+
+labeled-statement:
+	identifier ':' statement
+
+
+declaration-statement:
+	local-variable-declaration ';'
+	local-constant-declaration  ';'
+
+
+local-variable-declaration:
+	type   variable-declarators
+
+
+variable-declarators:
+	variable-declarator
+	variable-declarators   ','   variable-declarator
+
+
+variable-declarator:
+	identifier
+	identifier   '='   variable-initializer
+
+
+variable-initializer:
+	expression
+	array-initializer
+
+
+local-constant-declaration:
+	CONST_KW type   constant-declarators
+
+
+constant-declarators:
+	constant-declarator
+	constant-declarators   ','   constant-declarator
+
+
+constant-declarator:
+	identifier   '='   constant-expression
+
+
+expression-statement:
+	statement-expression   ';'
+
+
+statement-expression:
+	invocation-expression
+	object-creation-expression
+	assignment
+	post-increment-expression
+	post-decrement-expression
+	pre-increment-expression
+	pre-decrement-expression
+
+
+selection-statement:
+	if-statement
+	switch-statement
+
+
+if-statement:
+	IF_KW '('   boolean-expression   ')'   embedded-statement
+	IF_KW '('   boolean-expression   ')'   embedded-statement   ELSE_KW embedded-statement
+
+
+switch-statement:
+	SWITCH_KW '('   expression   ')'   switch-block
+
+
+switch-block:
+	'{'   switch-sectionsopt   '}'
+
+
+switch-sections:
+	switch-section
+	switch-sections   switch-section
+
+
+switch-section:
+	switch-labels   statement-list
+
+
+switch-labels:
+	switch-label
+	switch-labels   switch-label
+
+
+switch-label:
+	CASE_KW constant-expression ':'
+	DEFAULT_KW ':'
+
+
+iteration-statement:
+	while-statement
+	do-statement
+	for-statement
+	foreach-statement
+
+
+while-statement:
+	WHILE_KW   '('   boolean-expression   ')'   embedded-statement
+
+
+do-statement:
+	DO_KW embedded-statement   WHILE_KW '('   boolean-expression   ')'   ';'
+
+
+for-statement:
+	FOR_KW '('   for-initializer.Opt   ';'   for-condition.Opt   ';'   for-iterator.Opt   ')'   embedded-statement
+
+
+for-initializer:
+	local-variable-declaration
+	statement-expression-list
+
+
+for-condition:
+	boolean-expression
+
+
+for-iterator:
+	statement-expression-list
+
+
+statement-expression-list:
+	statement-expression
+	statement-expression-list   ','   statement-expression
+
+
+foreach-statement:
+	FOREACH_KW   '('   type   identifier   IN_KW   expression   ')'   embedded-statement
+
+
+jump-statement:
+	break-statement
+	continue-statement
+	goto-statement
+	return-statement
+	throw-statement
+
+
+break-statement:
+	BREAK_KW   ';'
+
+
+continue-statement:
+	CONTINUE_KW   ';'
+
+
+goto-statement:
+	GOTO_KW   identifier   ';'
+	GOTO_KW   CASE_KW   constant-expression   ';'
+	GOTO_KW   DEFAULT_KW ';'
+
+
+return-statement:
+	RETURN_KW expression.Opt   ';'
+
+
+throw-statement:
+	THROW_KW expression.Opt   ';'
+
+
+try-statement:
+	TRY_KW block   catch-clauses
+	TRY_KW   block   finally-clause
+	TRY_KW   block   catch-clauses   finally-clause
+
+
+catch-clauses:
+	specific-catch-clauses   general-catch-clause.Opt
+	specific-catch-clauses.Opt   general-catch-clause
+
+
+specific-catch-clauses:
+	specific-catch-clause
+	specific-catch-clauses   specific-catch-clause
+
+
+specific-catch-clause:
+	CATCH_KW   '('   class-type   identifier.Opt   ')'   block
+
+
+general-catch-clause:
+	CATCH_KW   block
+
+
+finally-clause:
+	FINALLY_KW block
+
+
+checked-statement:
+	CHECKED_KW block
+
+
+unchecked-statement:
+	UNCHECKED_KW block
+
+
+lock-statement:
+	LOCK_KW   '('   expression   ')'   embedded-statement
+
+
+compilation-unit:
+	using-directives.Opt   namespace-member-declarations.Opt
+
+
+namespace-declaration:
+	NAMESPACE_KW qualified-identifier   namespace-body   OpSemiColon
+
+OptSemiColor:
+	<Nothing>
+	| ';'
+
+
+qualified-identifier:
+	identifier
+	qualified-identifier '.' identifier
+
+
+namespace-body:
+	'{'   using-directives.Opt   namespace-member-declarations.Opt   '}'
+
+
+using-directives:
+	using-directive
+	using-directives   using-directive
+
+
+using-directive:
+	using-alias-directive
+	using-namespace-directive
+
+
+using-alias-directive:
+	USING_KW identifier   '='   namespace-or-type-name   ';'
+
+
+using-namespace-directive:
+	USING_KW   namespace-name   ';'
+
+
+namespace-member-declarations:
+	namespace-member-declaration
+	namespace-member-declarations   namespace-member-declaration
+
+namespace-member-declaration:
+	namespace-declaration
+	type-declaration
+
+
+type-declaration:
+	class-declaration
+	struct-declaration
+	interface-declaration
+	enum-declaration
+	delegate-declaration
+
+
+class-declaration:
+	attributes.Opt   class-modifiers.Opt   CLASS_KW   identifier   class-base.Opt   class-body   OptSemiColor
+
+
+class-modifiers:
+	class-modifier
+	class-modifiers   class-modifier
+
+
+class-modifier:
+	new_KW
+	public_KW
+	protected_KW
+	internal_KW
+	private_KW
+	abstract_KW
+	sealed_KW
+
+
+class-base:
+	':'   class-type
+	':'   interface-type-list
+	':'   class-type   ','   interface-type-list
+
+
+interface-type-list:
+	interface-type
+	interface-type-list   ','   interface-type
+
+
+class-body:
+	'{'   class-member-declarations.Opt   '}'
+
+
+class-member-declarations:
+	class-member-declaration
+	class-member-declarations   class-member-declaration
+
+
+class-member-declaration:
+	constant-declaration
+	field-declaration
+	method-declaration
+	property-declaration
+	event-declaration
+	indexer-declaration
+	operator-declaration
+	constructor-declaration
+	destructor-declaration
+	static-constructor-declaration
+	type-declaration
+
+
+constant-declaration:
+	attributes.Opt   constant-modifiers.Opt   CONST_KW type   constant-declarators   ';'
+
+
+constant-modifiers:
+	constant-modifier
+	constant-modifiers   constant-modifier
+
+
+constant-modifier:
+	new_KW
+	public_KW
+	protected_KW
+	internal_KW
+	private_KW
+
+
+constant-declarators:
+	constant-declarator
+	constant-declarators   ','   constant-declarator
+
+
+constant-declarator:
+	identifier   '='   constant-expression
+
+
+field-declaration:
+	attributes.Opt   field-modifiers.Opt   type   variable-declarators   ';'
+
+
+field-modifiers:
+	field-modifier
+	field-modifiers   field-modifier
+
+
+field-modifier:
+	new_KW
+	public_KW
+	protected_KW
+	internal_KW
+	private_KW
+	static_KW
+	readonly_KW
+
+
+variable-declarators:
+	variable-declarator
+	variable-declarators   ','   variable-declarator
+
+
+variable-declarator:
+	identifier
+	identifier   '='   variable-initializer
+
+
+variable-initializer:
+	expression
+	array-initializer
+
+
+method-declaration:
+	method-header   method-body
+
+
+method-header:
+	attributes.Opt   method-modifiers.Opt   return-type   member-name   '('   formal-parameter-list.Opt   ')'
+
+
+method-modifiers:
+method-modifier
+method-modifiers   method-modifier
+
+
+method-modifier:
+	new_KW
+	public_KW
+	protected_KW
+	internal_KW
+	private_KW
+	static_KW
+	virtual_KW
+	override_KW
+	abstract_KW
+	extern_KW
+
+
+return-type:
+	type
+	void_KW
+
+
+member-name:
+	identifier
+	interface-type   '.'   identifier
+
+
+method-body:
+	block
+	';'
+
+
+formal-parameter-list:
+	formal-parameter
+	formal-parameter-list   ','   formal-parameter
+
+
+formal-parameter:
+attributes.Opt   parameter-modifier.Opt   type   identifier
+
+
+parameter-modifier:
+	ref_KW
+	out_KW
+	params_KW
+
+
+property-declaration:
+	attributes.Opt   property-modifiers.Opt   type   member-name   '{'   accessor-declarations   '}'
+
+
+property-modifiers:
+	property-modifier
+	property-modifiers   property-modifier
+
+
+property-modifier:
+	new_KW
+	public_KW
+	protected_KW
+	internal_KW
+	private_KW
+	static_KW
+
+
+member-name:
+	identifier
+	interface-type   '.'   identifier
+
+
+accessor-declarations:
+	get-accessor-declaration   set-accessor-declaration.Opt
+	set-accessor-declaration   get-accessor-declaration.Opt
+
+
+get-accessor-declaration:
+	accessor-modifier.Opt   GET_KW accessor-body
+
+
+set-accessor-declaration:
+	accessor-modifier.Opt   SET_KW accessor-body
+
+
+accessor-modifier:
+	virtual_KW
+	override_KW
+	abstract_KW
+
+
+accessor-body:
+	block
+	';'
+
+
+event-declaration:
+event-field-declaration
+event-property-declaration
+
+
+event-field-declaration:
+	attributes.Opt   event-modifiers.Opt   EVENT_KW type   variable-declarators   ';'
+
+
+event-property-declaration:
+	attributes.Opt   event-modifiers.Opt   EVENT_KW   type   member-name   '{'   accessor-declarations   '}'
+
+
+event-modifiers:
+	event-modifier
+	event-modifiers   event-modifier
+
+
+event-modifier:
+	new_KW
+	public_KW
+	protected_KW
+	internal_KW
+	private_KW
+	static_KW
+
+
+indexer-declaration:
+	attributes.Opt   indexer-modifiers.Opt   indexer-declarator   '{'   accessor-declarations   '}'
+
+
+indexer-modifiers:
+	indexer-modifier
+	indexer-modifiers   indexer-modifier
+
+
+indexer-modifier:
+	new_KW
+	public_KW
+	protected_KW
+	internal_KW
+	private_KW
+
+
+indexer-declarator:
+	type   this_KW  '['   formal-index-parameter-list   ']'
+	type   interface-type   '.'   this_KW   '['   formal-index-parameter-list   ']'
+
+
+formal-index-parameter-list:
+	formal-index-parameter
+	formal-index-parameter-list   ','   formal-index-parameter
+
+
+formal-index-parameter:
+	attributes.Opt   type   identifier
+
+
+operator-declaration:
+	attributes.Opt   operator-modifiers   operator-declarator   block
+
+
+operator-modifiers:
+	public_KW   static_KW
+	static_KW   public_KW
+
+
+operator-declarator:
+	unary-operator-declarator
+	binary-operator-declarator
+	conversion-operator-declarator
+
+
+unary-operator-declarator:
+	type   operator_KW   overloadable-unary-operator   '('   type   identifier   ')'
+
+
+overloadable-unary-operator:
+	'+'
+	'-'
+	'!'
+	'~'
+	INCR_OP
+	DECR_OP
+	true_KW
+	false_KW
+
+
+binary-operator-declarator:
+	type   operator_KW   overloadable-binary-operator   (   type   identifier   ,   type   identifier   )
+
+
+overloadable-binary-operator: one of
+	'+'
+	'-'
+	'*'
+	'/'
+	'%'
+	'&'
+	'|'
+	'^'
+	LSHIFT_OP
+	RSHIFT_OP
+	EQ_OP
+	NE_OP
+	'>'
+	'<'
+	GE_OP
+	LE_OP
+
+
+conversion-operator-declarator:
+	implicit_KW   operator_KW   type   '('   type   identifier   ')'
+	explicit_KW   operator_KW   type   '('   type   identifier   ')'
+
+
+constructor-declaration:
+	attributes.Opt   constructor-modifiers.Opt   constructor-declarator   block
+
+
+constructor-modifiers:
+	constructor-modifier
+	constructor-modifiers   constructor-modifier
+
+
+constructor-modifier:
+	public_KW
+	protected_KW
+	internal_KW
+	private_KW
+
+
+constructor-declarator:
+	identifier   '('   formal-parameter-listopt   ')'   constructor-initializer.Opt
+
+
+constructor-initializer:
+	':'   base_KW   '('   argument-list.Opt   ')'
+	':'   this_KW   '('   argument-list.Opt   ')'
+
+
+destructor-declaration:
+	attributes.Opt   '~'   identifier   '('   ')'    block
+
+
+static-constructor-declaration:
+	attributes.Opt   static_KW   identifier   '('   ')'   block
+
+
+struct-declaration:
+	attributes.Opt   struct-modifiers.Opt   struct_KW   identifier   struct-interfaces.Opt   struct-body   OptSemiColor
+
+
+struct-modifiers:
+	struct-modifier
+	struct-modifiers   struct-modifier
+
+
+struct-modifier:
+	new_KW
+	public_KW
+	protected_KW
+	internal_KW
+	private_KW
+
+
+struct-interfaces:
+	':'   interface-type-list
+
+
+struct-body:
+	'{'   struct-member-declarations.Opt   '}'
+
+
+struct-member-declarations:
+	struct-member-declaration
+	struct-member-declarations   struct-member-declaration
+
+
+struct-member-declaration:
+	class-member-declaration
+
+
+array-type:
+	non-array-type   rank-specifiers
+
+
+non-array-type:
+	type
+
+
+rank-specifiers:
+	rank-specifier
+	rank-specifiers   rank-specifier
+
+
+rank-specifier:
+	'['   dim-separators.Opt   ']'
+
+
+dim-separators:
+	','
+	dim-separators   ','
+
+
+array-initializer:
+	'{'   variable-initializer-list.Opt   '}'
+	'{'   variable-initializer-list   ','   '}'
+
+
+variable-initializer-list:
+	variable-initializer
+	variable-initializer-list   ','   variable-initializer
+
+
+variable-initializer:
+	expression
+	array-initializer
+
+
+interface-declaration:
+	attributes.Opt   interface-modifiers.Opt   interface   identifier   interface-base.Opt   interface-body   OptSemiColor
+
+
+interface-modifiers:
+	interface-modifier
+	interface-modifiers   interface-modifier
+
+
+interface-modifier:
+	new_KW
+	public_KW
+	protected_KW
+	internal_KW
+	private_KW
+
+
+interface-base:
+	':'   interface-type-list
+
+
+interface-body:
+	'{'   interface-member-declarations.Opt   '}'
+
+
+interface-member-declarations:
+	interface-member-declaration
+	interface-member-declarations   interface-member-declaration
+
+
+interface-member-declaration:
+	interface-method-declaration
+	interface-property-declaration
+	interface-event-declaration
+	interface-indexer-declaration
+
+
+interface-method-declaration:
+	attributes.Opt   OptNewKeyword   return-type   identifier   '('   formal-parameter-list.Opt   ')'   ';'
+
+
+OptNewKeyword:
+    <Nothing>
+	| NEW_KW
+
+
+interface-property-declaration:
+	attributes.Opt   OptNewKeyword   type   identifier   '{'   interface-accessors   '}'
+
+
+interface-accessors:
+	GET_KW   ';'
+	SET_KW   ';'
+	GET_KW   ';'   SET_KW   ';'
+	SET_KW   ';'   GET_KW   ';'
+
+
+interface-event-declaration:
+attributes.Opt   OptNewKeyword   event_KW   type   identifier   ';'
+
+
+interface-indexer-declaration:
+	attributes.Opt   OptNewKeyword   type   THIS_KW   '['   formal-index-parameter-list   ']'   '{'   interface-accessors   '}'
+
+
+enum-declaration:
+	attributes.Opt   enum-modifiers.Opt   enum_KW   identifier   enum-base.Opt   enum-body   OptSemiColor
+
+
+enum-modifiers:
+	enum-modifier
+	enum-modifiers   enum-modifier
+
+
+enum-modifier:
+	new_KW
+	public_KW
+	protected_KW
+	internal_KW
+	private_KW
+
+
+enum-base:
+	':'   integral-type
+
+
+enum-body:
+	'{'   enum-member-declarations.Opt   '}'
+	'{'   enum-member-declarations   ','   '}'
+
+
+enum-member-declarations:
+	enum-member-declaration
+	enum-member-declarations   ','   enum-member-declaration
+
+
+enum-member-declaration:
+	attributes.Opt   identifier
+	attributes.Opt   identifier   '='   constant-expression
+
+
+delegate-declaration:
+	attributes.Opt   delegate-modifiers.Opt   delegate_KW   result-type   identifier   '('   formal-parameter-list.Opt   ')'   ';'
+
+
+delegate-modifiers:
+	delegate-modifier
+	delegate-modifiers   delegate-modifier
+
+
+delegate-modifier:
+	new_KW
+	public_KW
+	protected_KW
+	internal_KW
+	private_KW
+
+
+attributes:
+	attribute-sections
+
+
+attribute-sections:
+	attribute-section
+	attribute-sections   attribute-section
+
+
+attribute-section:
+	'['   attribute-list   ']'
+	'['   attribute-list   ',' ']'
+
+
+attribute-list:
+	attribute
+	attribute-list   ','   attribute
+
+
+attribute:
+	attribute-name   attribute-arguments.Opt
+
+
+attribute-name:
+	reserved-attribute-name 
+	type-name
+
+
+attribute-arguments:
+	'('   positional-argument-list   ')'
+	'('   positional-argument-list   ','   named-argument-list   ')'
+	'('   named-argument-list   ')'
+
+
+positional-argument-list:
+	positional-argument
+	positional-argument-list   ','   positional-argument
+
+
+positional-argument:
+	attribute-argument-expression
+
+
+named-argument-list:
+	named-argument
+	named-argument-list   ','   named-argument
+
+
+named-argument:
+	identifier   '='   attribute-argument-expression
+
+
+attribute-argument-expression:
+	expression
+
+
+pointer-type:
+	unmanaged-type   '*'
+	void   '*'
+
+
+unmanaged-type:
+	value-type
