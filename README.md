@@ -12,7 +12,7 @@ Description of Db:
 D flat is a programming language that utilizes C# as its base syntax. That means that to start
 with, D flat is a implementation of the C# language standard, as provided by Microsoft.
 
-But wait, there is more. Db is a more advance language than C#. In order to introduce new syntax
+But wait, there is more. Db is a more advanced language than C#. In order to introduce new syntax
 and features to C# in a well managed fashion, the advances of Db are categorized in independent
 sets, called districts.
 
